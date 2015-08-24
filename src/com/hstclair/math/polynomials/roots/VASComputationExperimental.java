@@ -34,6 +34,14 @@ public class VASComputationExperimental implements VASOperation {
         List<Interval> roots = new LinkedList<>();
         List<VASOperation> operations = new LinkedList<>();
 
+        // Operations:
+        // (1) Reduce Degree if Const == 0
+        // (2) Test Sign Changes
+        // (3) Adjust to Lower Bound
+        // (4) Align Lower Bound With X == 0
+        // (5) Bisect at X==1
+
+        // (1)
         // if the constant portion of the current polynomial is zero, we have found one of the roots and
         // it's value is determined by M(0).   Add this root to the list then reduce the degree of the polynomial by
         // dividing by X (this still results in a valid polynomial because there is no constant term).
@@ -45,10 +53,11 @@ public class VASComputationExperimental implements VASOperation {
             roots.add(interval);
 
             // and set p(x) ← p(x)/x
-            polynomial = polynomial.reduceDegree();     // TODO:  consolidate this logic at top???
-
+            polynomial = polynomial.reduceDegree();
         }
 
+
+        // (2)
         // Compute s ← sgc(p)
         int sign = polynomial.signChanges();
 
@@ -61,6 +70,7 @@ public class VASComputationExperimental implements VASOperation {
             return buildResult(roots, operations);
         }
 
+        // (3)
         // Compute a lower bound α ∈ Z on the positive roots of p.
         double lowerBound = lowerBoundEstimator.estimateLowerBound(polynomial);
 
@@ -74,6 +84,7 @@ public class VASComputationExperimental implements VASOperation {
             lowerBound = 1;
         }
 
+        // (4)
         // if the lower bound is greater than or equal to 1, compose the polynomial with (x + lowerBound) so that
         // the lower bound now coincides with zero
         //
@@ -89,14 +100,13 @@ public class VASComputationExperimental implements VASOperation {
             return buildResult(roots, operations);
         }
 
+        // (5)
         // Compute p1(x) ← p(x + 1)
         Polynomial polynomial1 = polynomial.apply(xPlusOne);
         // set a1 ← a, b1 ← a + b, c1 ← c, d1 ← c + d
         RealMobiusTransformation mobius1 = mobius.composeXPlusK(1);
 
         operations.add(new VASComputationExperimental(polynomial1, mobius1));
-
-        int sign2;
 
         // a2 ← b, b2 ← a + b, c2 ← d, and d2 ← c + d
         RealMobiusTransformation mobius2 = mobius.vincentsReduction();
