@@ -71,7 +71,7 @@ public class VASComputation implements VASOperation {
                 roots.add(interval);
 
                 // and set p(x) ← p(x)/x
-                polynomial = polynomial.reduceDegree();
+                polynomial = polynomial.reduceDegree();     // TODO:  consolidate this logic at top???
 
                 // Compute s ← sgc(p)
                 sign = polynomial.signChanges();
