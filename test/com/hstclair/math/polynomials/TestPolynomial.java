@@ -4,7 +4,6 @@ import com.hstclair.math.Complex;
 import org.junit.Test;
 
 import java.util.Arrays;
-import java.util.Objects;
 import java.util.function.Function;
 
 import static org.junit.Assert.*;
@@ -583,6 +582,14 @@ public class TestPolynomial {
     }
 
     @Test
+    public void testSumOfZeroAndConstantIsPolynomialOfConstant() {
+        double constant = 100;
+        Polynomial sum = Polynomial.ZERO.sum(constant);
+
+        assertEquals(Polynomial.of(constant), sum);
+    }
+
+    @Test
     public void testSumRejectsNullAddend() {
         try {
             Polynomial.pascal(10).sum(null);
@@ -796,7 +803,7 @@ public class TestPolynomial {
 
         Polynomial expected = new Polynomial(expectedCoefficients);
 
-        Polynomial result = initial.vincentsReduction();
+        Polynomial result = initial.budansTheorem();
 
         assertEquals(expected, result);
 
@@ -846,8 +853,160 @@ public class TestPolynomial {
 
     @Test
     public void testPolynomialOfSingleCoefficientOneIsIdentity() {
-        Polynomial result = Polynomial.of(new double[] {1});
+        Polynomial result = Polynomial.of(1);
 
         assertTrue(Polynomial.IDENTITY == result);
+    }
+
+    @Test
+    public void testToStringGeneratesZeroConstantForZeroPolynomial() {
+        String value = Polynomial.ZERO.toString();
+
+        assertEquals("0", value);
+    }
+
+    @Test
+    public void testToStringGeneratesLeadingNegativeSign() {
+        String value = Polynomial.of(-1).toString();
+
+        assertEquals("-1", value);
+    }
+
+    @Test
+    public void testToStringDoesNotGenerateLeadingPositiveSign() {
+        String value = Polynomial.of( new double[] { 1 }).toString();
+
+        assertEquals("1", value);
+    }
+
+    @Test
+    public void testToStringDoesNotGenerateExponentForDegreeOneTerm() {
+        String value = Polynomial.of( new double[] { 0, 1 }).toString();
+
+        assertEquals("X", value);
+    }
+
+    @Test
+    public void testToStringDoesNotGenerateCoefficientForNonzeroDegreeTerms() {
+        String value = Polynomial.of( new double[] { 1, 1, 1, 1, 1 }).toString();
+
+        assertEquals("X^4 + X^3 + X^2 + X + 1", value);
+    }
+
+    @Test
+    public void testToStringDoesNotReportForZeroCoefficients() {
+        String value = Polynomial.of( new double[] { 0, 1, 0, 1 }).toString();
+
+        assertEquals("X^3 + X", value);
+    }
+
+    @Test
+    public void testToStringDoesNotAddNegativeTerms() {
+        String value = Polynomial.of(new double[] {1, -1, 1, -1, 1 }).toString();
+
+        assertEquals("X^4 - X^3 + X^2 - X + 1", value);
+    }
+
+    @Test
+    public void testToStringGeneratesDecimalCoefficients() {
+        String value = Polynomial.of(1.11).toString();
+
+        assertEquals("1.11", value);
+    }
+
+    @Test
+    public void testFromTwoRoots() {
+        double[] expectedCoefficients = new double[] { 2, -3, 1 };
+        double[] roots = new double[] { 1, 2 };
+        Polynomial value = Polynomial.fromRoots(roots);
+
+        assertArrayEquals(expectedCoefficients, value.coefficients, 0);
+    }
+
+    @Test
+    public void testFromThreeRoots() {
+        double[] expectedCoefficients = new double[] { -8, 14, -7, 1 };
+        double[] roots = new double[] { 1, 2, 4 };
+        Polynomial value = Polynomial.fromRoots(roots);
+
+        assertArrayEquals(expectedCoefficients, value.coefficients, 0);
+    }
+
+    @Test
+    public void testFromFourRoots() {
+        double[] expectedCoefficients = new double[] { 96, -176, 98, -19, 1 };
+        double[] roots = new double[] { 1, 2, 4, 12 };
+        Polynomial value = Polynomial.fromRoots(roots);
+
+        assertArrayEquals(expectedCoefficients, value.coefficients, 0);
+    }
+
+    @Test
+    public void testQuotientReducesDegree() {
+        double[] dividendCoefficients = new double[] { 0, 0, 1 };
+        double[] divisorCoefficients = new double[] { 0, 1 };
+        double[] quotientCoefficients = new double[] { 0, 1 };
+        double[] remainderCoefficients = new double[] { 0 };
+
+        Polynomial dividend = Polynomial.of(dividendCoefficients);
+        Polynomial divisor = Polynomial.of(divisorCoefficients);
+        Polynomial expectedQuotient = Polynomial.of(quotientCoefficients);
+        Polynomial expectedRemainder = Polynomial.of(remainderCoefficients);
+
+        PolynomialQuotient result = dividend.quotient(divisor);
+
+        assertEquals(expectedQuotient, result.quotient);
+        assertEquals(expectedRemainder, result.remainder);
+    }
+
+
+    @Test
+    public void testQuotientPerformsLongDivision() {
+        double[] dividendCoefficients = new double[] { -4, 0, -2, 1 };
+        double[] divisorCoefficients = new double[] { -3, 1 };
+        double[] quotientCoefficients = new double[] { 3, 1, 1 };
+        double[] remainderCoefficients = new double[] { 5 };
+
+        Polynomial dividend = Polynomial.of(dividendCoefficients);
+        Polynomial divisor = Polynomial.of(divisorCoefficients);
+        Polynomial expectedQuotient = Polynomial.of(quotientCoefficients);
+        Polynomial expectedRemainder = Polynomial.of(remainderCoefficients);
+
+        PolynomialQuotient result = dividend.quotient(divisor);
+
+        assertEquals(expectedQuotient, result.quotient);
+        assertEquals(expectedRemainder, result.remainder);
+    }
+
+
+    @Test
+    public void testQuotientPerformsLongDivisionAgain() {
+        double[] dividendCoefficients = new double[] { 5, 13, 7, 2 };
+        double[] divisorCoefficients = new double[] { 1, 2 };
+        double[] quotientCoefficients = new double[] { 5, 3, 1 };
+        double[] remainderCoefficients = new double[] { 0 };
+
+        Polynomial dividend = Polynomial.of(dividendCoefficients);
+        Polynomial divisor = Polynomial.of(divisorCoefficients);
+        Polynomial expectedQuotient = Polynomial.of(quotientCoefficients);
+        Polynomial expectedRemainder = Polynomial.of(remainderCoefficients);
+
+        PolynomialQuotient result = dividend.quotient(divisor);
+
+        assertEquals(expectedQuotient, result.quotient);
+        assertEquals(expectedRemainder, result.remainder);
+    }
+
+    @Test
+    public void testQuotientOfProductAndMultiplicandIsOtherMultiplicand() {
+        Polynomial multiplicandA = Polynomial.of(new double[] { 12, 7, 5, 3, 8, 22, -3, -8, 1 });
+        Polynomial multiplicandB = Polynomial.of(new double[] { -3, 4, 7, -8, 12 });
+
+        Polynomial product = multiplicandA.product(multiplicandB);
+
+        PolynomialQuotient result = product.quotient(multiplicandB);
+
+        assertEquals(Polynomial.ZERO, result.remainder);
+        assertEquals(multiplicandA, result.quotient);
     }
 }

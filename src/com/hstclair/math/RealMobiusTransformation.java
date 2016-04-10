@@ -1,6 +1,9 @@
 package com.hstclair.math;
 
 
+import com.hstclair.math.polynomials.Polynomial;
+import com.sun.javafx.binding.DoubleConstant;
+
 /**
  * @author hstclair
  * @since 8/10/15 9:32 PM
@@ -47,7 +50,7 @@ public class RealMobiusTransformation {
         return (a * x + b) / (c * x + d);
     }
 
-    public RealMobiusTransformation vincentsReduction() {
+    public RealMobiusTransformation budansTheorem() {
         return new RealMobiusTransformation(b, a + b, d, c + d);
     }
 
@@ -57,5 +60,12 @@ public class RealMobiusTransformation {
 
     public RealMobiusTransformation composeAlphaX(double alpha) {
         return new RealMobiusTransformation(alpha * a, b, alpha * c, d);
+    }
+
+    public String toString() {
+        Polynomial numerator = Polynomial.of(new double[] {b, a});
+        Polynomial denominator = Polynomial.of(new double[] {c, d});
+
+        return String.format("(%s) / (%s)", numerator, denominator);
     }
 }

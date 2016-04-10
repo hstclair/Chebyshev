@@ -2,11 +2,12 @@ package com.hstclair.math.polynomials;
 
 import com.hstclair.math.Complex;
 
-import java.util.Arrays;
-import java.util.LinkedList;
-import java.util.List;
-import java.util.Objects;
+import java.text.DecimalFormat;
+import java.util.*;
 import java.util.function.Function;
+
+import static jdk.nashorn.internal.runtime.regexp.joni.encoding.CharacterType.D;
+import static sun.management.snmp.jvminstr.JvmThreadInstanceEntryImpl.ThreadStateMap.Byte1.other;
 
 /**
  * Represents a Polynomial in positive integer exponents
@@ -20,6 +21,8 @@ public class Polynomial {
     static final double[] EMPTY = new double[0];
 
     public static final Polynomial ZERO = new Polynomial(EMPTY);
+
+    public static final Polynomial ONE = new Polynomial(1);
 
     double[] coefficients;
 
@@ -90,6 +93,47 @@ public class Polynomial {
         return Polynomial.of(newCoefficients);
     }
 
+    public Polynomial divide(double divisor) {
+        if (divisor == 0)
+            throw new IllegalArgumentException("Cannot divide by zero");
+
+        if (divisor == 1)
+            return this;
+
+        double[] newCoefficients = new double[degree() + 1];
+
+        for (int index = 0; index <= degree(); index++) {
+            newCoefficients[index] = coefficients[index] / divisor;
+        }
+
+        return Polynomial.of(newCoefficients);
+    }
+
+    public PolynomialQuotient quotient(Polynomial divisor) {
+        if (divisor == Polynomial.ZERO)
+            throw new IllegalArgumentException("Cannot divide by Zero");
+
+        if (divisor == Polynomial.ONE)
+            new PolynomialQuotient(this, Polynomial.ZERO);
+
+        if (divisor.degree() > this.degree())
+            return new PolynomialQuotient(ZERO, this);
+
+        Polynomial remainder = this;
+
+        double[] quotient = new double[degree() - divisor.degree() + 1];
+
+        while (remainder.degree() >= divisor.degree()) {
+            double divisorTerm = remainder.leadingCoefficient() / divisor.leadingCoefficient();
+
+            quotient[remainder.degree() - divisor.degree()] = divisorTerm;
+
+            remainder = remainder.difference(divisor.product(divisorTerm).degree(remainder.degree()));
+        }
+
+        return new PolynomialQuotient(Polynomial.of(quotient), remainder);
+    }
+
     public Polynomial sum(Polynomial addend) {
         Objects.requireNonNull(addend);
 
@@ -112,6 +156,9 @@ public class Polynomial {
     }
 
     public Polynomial sum(double addend) {
+        if (this == ZERO)
+            return Polynomial.of(addend);
+
         double[] newCoefficients = coefficients.clone();
 
         newCoefficients[0] += addend;
@@ -356,16 +403,29 @@ public class Polynomial {
     }
 
     /**
+     * Transform Polynomial to test for roots in interval (0, 1) according to Budan's Theorem
+     *
      * returns the equivalent of:
      *
      *   f(1/(x+1)) * (x + 1)^degree(f(x))
      *
+     *   Budan's Theorem (https://en.wikipedia.org/wiki/Budan%27s_theorem#Early_applications_of_Budan.27s_theorem) states that
+     *   if a polynomial is transformed in this manner, the number of roots within interval (0, 1) of the original
+     *   polynomial is bounded by the number of sign changes (Descartes Rule of Signs).
+     *
      * @return
      */
-    public Polynomial vincentsReduction() {
+    public Polynomial budansTheorem() {
         Function<Integer, Polynomial> function = (k) -> pascal(degree() - k).product(coefficients[k]);
 
         return Polynomial.sigma(function, degree());
+    }
+
+    public double leadingCoefficient() {
+        if (this == ZERO)
+            return 0;
+
+        return coefficients[degree()];
     }
 
     public double[] getCoefficients() {
@@ -383,13 +443,67 @@ public class Polynomial {
         return coefficients[0];
     }
 
-    public Polynomial reduceDegree() {
-        if (degree() <= 0)
-            return ZERO;
+    public int lowestDegree() {
+        int lowestDegree = 0;
 
-        double[] newCoefficients = Arrays.copyOfRange(coefficients, 1, coefficients.length - 1);
+        while (coefficients[lowestDegree] == 0)
+            lowestDegree++;
+
+        return lowestDegree;
+    }
+
+    public Polynomial degree(int newDegree) {
+        if (newDegree < 0)
+            throw new IllegalArgumentException("Negative degree");
+
+        if (newDegree == 0)
+            return Polynomial.of(leadingCoefficient());
+
+        if (newDegree < degree())
+            return reduceDegree(degree() - newDegree);
+        else
+            return increaseDegree(newDegree - degree());
+
+    }
+
+    public Polynomial increaseDegree(int increase) {
+        if (increase < 0)
+            throw new IllegalArgumentException("Increase by negative amount");
+
+        if (increase == 0)
+            return this;
+
+        double[] newCoefficients = new double[degree() + increase + 1];
+
+        System.arraycopy(coefficients, 0, newCoefficients, increase, degree() + 1);
 
         return Polynomial.of(newCoefficients);
+    }
+
+    public Polynomial reduceDegree(int reduction) {
+        if (reduction < 0)
+            throw new IllegalArgumentException("Reduction by negative amount");
+
+        if (reduction == 0)
+            return this;
+
+        if (degree() <= reduction)
+            return ZERO;
+
+        double[] newCoefficients = Arrays.copyOfRange(coefficients, reduction, coefficients.length);
+
+        return Polynomial.of(newCoefficients);
+    }
+
+    public Polynomial reduceDegree() {
+        return reduceDegree(1);
+//
+//        if (degree() <= 0)
+//            return ZERO;
+//
+//        double[] newCoefficients = Arrays.copyOfRange(coefficients, 1, coefficients.length);
+//
+//        return Polynomial.of(newCoefficients);
     }
 
     /**
@@ -411,6 +525,16 @@ public class Polynomial {
         }
 
         return Math.max(count, 0);
+    }
+
+    public static Polynomial fromRoots(double[] roots) {
+        Polynomial result = Polynomial.of(1);
+
+        for (double root : roots) {
+            result = result.product(Polynomial.of(new double[] { -root, 1}));
+        }
+
+        return result;
     }
 
     public static Polynomial of(double coefficient) {
@@ -484,6 +608,59 @@ public class Polynomial {
             return EMPTY;
 
         return Arrays.copyOf(coefficients, coefficients.length - zeros);
+    }
+
+    @Override
+    public String toString() {
+        if (this == ZERO)
+            return "0";
+
+        DecimalFormat integerFormat = new DecimalFormat();
+        integerFormat.setMaximumFractionDigits(0);
+
+        DecimalFormat floatFormat = new DecimalFormat();
+        floatFormat.setMaximumFractionDigits(17);
+        floatFormat.setMinimumFractionDigits(0);
+
+        StringBuilder sb = new StringBuilder();
+
+        boolean first = true;
+
+        for (int degree = coefficients.length - 1; degree >= 0; degree--) {
+            double coefficient = coefficients[degree];
+
+            if (coefficient == 0)
+                continue;
+
+
+            if (first) {
+                if (coefficient < 0)
+                    sb.append("-");
+            } else {
+                if (coefficient >= 0) {
+                    sb.append(" + ");
+                } else
+                    sb.append(" - ");
+            }
+
+            coefficient = Math.abs(coefficient);
+
+            if (coefficient != 1 || degree == 0) {
+                if (0 == coefficient % 1)
+                    sb.append(integerFormat.format(coefficient));
+                else
+                    sb.append(floatFormat.format(coefficient));
+            }
+
+            if (degree > 1)
+                sb.append(String.format("X^%d", degree));
+            else if (degree == 1)
+                sb.append(String.format("X", degree));
+
+            first = false;
+        }
+
+        return sb.toString();
     }
 
     @Override

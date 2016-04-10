@@ -4,9 +4,8 @@ import com.hstclair.math.Interval;
 import com.hstclair.math.RealMobiusTransformation;
 import com.hstclair.math.polynomials.Polynomial;
 
-import java.util.Collections;
-import java.util.LinkedList;
-import java.util.List;
+import java.util.*;
+import java.util.function.Function;
 
 /**
  * @author hstclair
@@ -14,8 +13,23 @@ import java.util.List;
  */
 public class VincentAkritasStrzeboński {
 
+    private Function<Polynomial, VASOperation> vasOperationBuilder;
+
+    /** Construct standard VincentAkritasStrzeboński instance */
+    public VincentAkritasStrzeboński() {
+        this((Polynomial polynomial) -> new VASComputation(polynomial, RealMobiusTransformation.IDENTITY));
+    }
+
+    /**
+     * Construct VincentAkritasStrzeboński instance with custom implementation of VASComputation
+     * @param vasOperationBuilder function to construct the required VASComputation implementation
+     */
+    public VincentAkritasStrzeboński(Function<Polynomial, VASOperation> vasOperationBuilder) {
+        this.vasOperationBuilder = vasOperationBuilder;
+    }
+
     List<Interval> performVASIteration(VASOperation operation) {
-        List<Interval> results = new LinkedList<>();
+        Set<Interval> results = new HashSet<>();
         LinkedList<VASOperation> operations = new LinkedList<>();
 
         operations.add(operation);
@@ -33,7 +47,7 @@ public class VincentAkritasStrzeboński {
             }
         }
 
-        return results;
+        return new LinkedList<>(results);
     }
 
     public List<Interval> findRootIntervals(Polynomial polynomial) {
@@ -51,7 +65,7 @@ public class VincentAkritasStrzeboński {
         }
 
         // Put interval data {1, 0, 0, 1, f, s} on intervalstack
-        return performVASIteration(new VASComputation(polynomial, RealMobiusTransformation.IDENTITY));
+        return performVASIteration(vasOperationBuilder.apply(polynomial));
     }
 }
 

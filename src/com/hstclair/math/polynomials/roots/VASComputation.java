@@ -114,13 +114,13 @@ public class VASComputation implements VASOperation {
         int sign2 = sign - sign1 - r;
 
         // a2 ← b, b2 ← a + b, c2 ← d, and d2 ← c + d
-        RealMobiusTransformation mobius2 = mobius.vincentsReduction();
+        RealMobiusTransformation mobius2 = mobius.budansTheorem();
         Polynomial polynomial2 = Polynomial.ZERO;
 
         //  If s2 > 1
         if (sign2 > 1) {
             //  compute p2(x) ← (x + 1)^m * p(1/(x+1)), where m is the degree of p
-            polynomial2 = polynomial.vincentsReduction();
+            polynomial2 = polynomial.budansTheorem();
 
             // If p2(0) = 0
             if (polynomial2.constant() == 0) {
