@@ -6,7 +6,10 @@ import org.junit.Test;
 import java.util.Arrays;
 import java.util.function.Function;
 
-import static org.junit.Assert.*;
+import static junit.framework.TestCase.assertEquals;
+import static junit.framework.TestCase.fail;
+import static org.junit.Assert.assertArrayEquals;
+import static org.junit.Assert.assertTrue;
 
 /**
  * @author hstclair
@@ -343,7 +346,7 @@ public class TestPolynomial {
 
     @Test
     public void testApplyDouble() {
-        // from http://mathworld.wolfram.com/MaclaurinSeries.html
+        // valueOf http://mathworld.wolfram.com/MaclaurinSeries.html
         // f(x) = 1/(1-x) = sigma[n=0 to inf] of x^n
         Polynomial polynomial = Polynomial.of(new double[] { 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1 });
 

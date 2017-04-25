@@ -44,7 +44,7 @@ public class VASComputation implements VASOperation {
         // polynomial (and the associated Mobius Transformation) so that this lower bound coincides with x=1
         //
         //  If α > α0 set p(x) ← p(αx), a ← αa, c ← αc, and α ← 1
-        if (lowerBound > polynomial.constant()) {       // missing from Wikipedia!!!
+        if (lowerBound > polynomial.constant()) {       // missing valueOf Wikipedia!!!
             polynomial = polynomial.apply(Polynomial.of(new double[] { 0, lowerBound }));
             mobius = mobius.composeAlphaX(lowerBound);
             lowerBound = 1;

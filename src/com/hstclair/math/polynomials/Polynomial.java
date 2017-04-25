@@ -36,6 +36,15 @@ public class Polynomial {
         this.coefficients = trimCoefficients(coefficients);
     }
 
+    /**
+     * Construct a polynomial passing through the supplied points (this is NOT a least squares fit)
+     * @param x the set of X values
+     * @param y the set of Y values
+     */
+    Polynomial(double[] x, double[] y) {
+
+    }
+
     Polynomial(double coefficient) {
         if (coefficient == 0)
             coefficients = EMPTY;
