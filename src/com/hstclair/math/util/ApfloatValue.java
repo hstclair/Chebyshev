@@ -1,6 +1,7 @@
 package com.hstclair.math.util;
 
 import com.hstclair.math.matrix.Value;
+import org.apfloat.Apcomplex;
 import org.apfloat.Apfloat;
 
 /**
@@ -42,5 +43,15 @@ public class ApfloatValue implements Value<Apfloat> {
     @Override
     public Value<Apfloat> negate() {
         return new ApfloatValue(this.value.negate());
+    }
+
+    @Override
+    public boolean isZero() {
+        return value.equals(Apfloat.ZERO);
+    }
+
+    @Override
+    public boolean isOne() {
+        return value.equals(Apfloat.ONE);
     }
 }

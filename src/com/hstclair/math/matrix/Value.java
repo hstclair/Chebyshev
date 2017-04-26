@@ -9,5 +9,7 @@ public interface Value<T> {
     Value<T> multiply(Value<T> multiplicand);
     Value<T> divide(Value<T> divisor);
     Value<T> negate();
+    boolean isZero();
+    boolean isOne();
     T value();
 }

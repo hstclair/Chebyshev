@@ -42,4 +42,10 @@ public class DoubleValue implements Value<Double> {
     public Double value() {
         return value;
     }
+
+    @Override
+    public boolean isZero() { return value == 0; }
+
+    @Override
+    public boolean isOne() { return value == 1; }
 }
