@@ -1,21 +1,28 @@
 package com.hstclair.math.matrix;
 
+import com.hstclair.math.util.ValueFactory;
+
 /**
  * Created by hstclair on 4/22/17.
  */
 public class DeterminantLUSolver<T> {
 
-    final Value<T> coefficient;
+    final Value<T> ZERO;
+
+    final Value<T> ONE;
 
     final Matrix<T> matrix;
 
     public DeterminantLUSolver(Matrix<T> matrix) {
         this.matrix = matrix;
+        ValueFactory<T> factory = matrix.factory;
+        ZERO = factory.valueOfZero();
+        ONE = factory.valueOfOne();
     }
 
     enum RowSolutionState {
         NoSolution,     // matrix has no solution
-        Solveable,      // row may be solved
+        Solvable,      // row may be solved
         Exchanged       // row may be solved but rows were transposed
     }
 
@@ -49,35 +56,67 @@ public class DeterminantLUSolver<T> {
         }
 
         if (row == column) {
-            return RowSolutionState.Solveable;    // matrix is ready for column to be solved
+            return RowSolutionState.Solvable;    // matrix is ready for column to be solved
         }
 
         switchRows(members, column, row);
         return RowSolutionState.Exchanged;        // matrix is ready for column to be solved but rows were exchanged
     }
 
-    void solveColumn(Value<T>[][] members, int solveColumn) {
+    void solveRow(Value<T>[] referenceRow, Value<T>[] row, int solveColumn, Value<T> divisor) {
+
+        for (int column = solveColumn+1; column < row.length; column++) {
+
+            if (! row[column].isZero())
+                row[column] = row[column].multiply(referenceRow[solveColumn]);
+
+            row[column] = row[column].subtract(row[solveColumn].multiply(referenceRow[column]));
+
+            if (! (row[column].isZero() || divisor == ONE))
+                row[column] = row[column].divide(divisor);
+        }
+
+        row[solveColumn] = ZERO;
+    }
+
+    Value<T> solveColumn(Value<T>[][] members, int solveColumn, Value<T> divisor) {
         for (int row = solveColumn + 1; row < members.length; row++) {
-            if (members[row][solveColumn].isZero())
-                continue;
-
-            for (int column = solveColumn; column < members[row].length; column++) {
-                if (members[row][column].isZero())
-                    members[row][column] = members[row][solveColumn].multiply(members[solveColumn][column]);
-                else
-                    members[row][column] = members[row][column].multiply(members[solveColumn][solveColumn]).subtract(members[row][solveColumn].multiply(members[solveColumn][column]));
-            }
+            solveRow(members[solveColumn], members[row], solveColumn, divisor);
         }
+
+        return members[solveColumn][solveColumn];
     }
 
-    T solveMatrix(Value<T>[][] members, int order) {
+    T solveMatrix(Value<T>[][] members) {
+        boolean negate = false;
+
+        Value<T> divisor = ONE;
+
+        int order = members.length;
+
         for (int column = 0; column < order; column++) {
-            solveColumn(members, column);
+            RowSolutionState state = prepColumn(members, column);
+
+            if (state == RowSolutionState.NoSolution)
+                return null;
+
+            if (state == RowSolutionState.Exchanged)
+                negate = ! negate;
+
+            divisor = solveColumn(members, column, divisor);
         }
 
+        if (negate)
+            members[order-1][order-1] = members[order-1][order-1].negate();
+
+        return members[order-1][order-1].value();
     }
 
+    T solve() {
+        Value<T>[][] members = matrix.cloneMembers();    // get member array
 
+        return solveMatrix(members);
+    }
 
 
     // for an nXn matrix M:

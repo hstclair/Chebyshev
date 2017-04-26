@@ -63,6 +63,10 @@ public class Matrix<T> {
         return clone;
     }
 
+    Value<T>[][] cloneMembers() {
+        return clone(members);
+    }
+
     private Value<T> subtract(Value<T>[] subtrahend, Value<T>[] minuend, int column) {
         Value<T> subtrahendCoefficient = minuend[column];
         Value<T> minuendCoefficient = subtrahend[column];
