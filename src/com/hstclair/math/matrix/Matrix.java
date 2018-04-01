@@ -129,4 +129,30 @@ public class Matrix<T> {
         return new Matrix<T>(members, factory);
     }
 
+    @Override
+    public boolean equals(Object obj) {
+
+        if (obj == this)
+            return true;
+
+        if (obj == null)
+            return false;
+
+        if (! (obj instanceof Matrix))
+            return false;
+
+        Matrix that = (Matrix) obj;
+
+        if (that.order != order)
+            return false;
+
+        for (int row = 0; row < order; row ++) {
+            for (int col = 0; col < order; col++) {
+                if (! members[row][col].equals(that.members[row][col]))
+                    return false;
+            }
+        }
+
+        return true;
+    }
 }

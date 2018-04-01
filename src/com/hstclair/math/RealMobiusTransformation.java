@@ -2,7 +2,6 @@ package com.hstclair.math;
 
 
 import com.hstclair.math.polynomials.Polynomial;
-import com.sun.javafx.binding.DoubleConstant;
 
 /**
  * @author hstclair

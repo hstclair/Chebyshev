@@ -48,4 +48,31 @@ public class DoubleValue implements Value<Double> {
 
     @Override
     public boolean isOne() { return value == 1; }
+
+    @Override
+    public String toString() {
+        return Double.toString(value);
+    }
+
+    @Override
+    public boolean equals(Object obj) {
+
+        if (obj == null)
+            return false;
+
+        if (obj == this)
+            return true;
+
+        if (! (obj instanceof DoubleValue))
+            return false;
+
+        DoubleValue that = (DoubleValue) obj;
+
+        return value.equals(that.value());
+    }
+
+    @Override
+    public int hashCode() {
+        return value.hashCode();
+    }
 }

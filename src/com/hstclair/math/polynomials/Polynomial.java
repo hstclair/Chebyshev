@@ -3,11 +3,11 @@ package com.hstclair.math.polynomials;
 import com.hstclair.math.Complex;
 
 import java.text.DecimalFormat;
-import java.util.*;
+import java.util.Arrays;
+import java.util.LinkedList;
+import java.util.List;
+import java.util.Objects;
 import java.util.function.Function;
-
-import static jdk.nashorn.internal.runtime.regexp.joni.encoding.CharacterType.D;
-import static sun.management.snmp.jvminstr.JvmThreadInstanceEntryImpl.ThreadStateMap.Byte1.other;
 
 /**
  * Represents a Polynomial in positive integer exponents
